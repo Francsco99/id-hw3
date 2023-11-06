@@ -24,11 +24,12 @@ import java.util.Map;
 public class TableIndexer {
 
     public void tableIndexer(String jsonPath,String indexPath) {
+        long file_Start_Time = System.currentTimeMillis(); // inizia il tempo
         try {
             // Apre un file JSON contenente tabelle
             BufferedReader reader = new BufferedReader(new FileReader(jsonPath));
-            String line;
-            //int j = 0; // Contatore per le tabelle
+            String line; // Riga corrente del file json
+            int j = 0; // Contatore per le tabelle
 
             // Directory Lucene per indice
             Directory indexDirectory = FSDirectory.open(Paths.get(indexPath));
@@ -48,10 +49,25 @@ public class TableIndexer {
                 JsonArray cells = jsonTable.getAsJsonArray("cells"); // Ottiene l'array di celle
 
                 //Stampa l'id della tabella corrente
-                //System.out.println("Tabella " + j + " " + tableId + " " + maxRows + " " + maxCols);
-                //j++;
+                // System.out.println("Tabella " + j + " " + tableId + " " + maxRows + " " + maxCols);
+                j++;
 
-                // Crea una mappa per memorizzare i valori "cleanedText" per ciascuna colonna
+                Document doc = new Document();
+                doc.add(new TextField("id", tableId, Field.Store.YES));
+                for (int i = 0; i < cells.size(); i++) {
+                    JsonObject cell = cells.get(i).getAsJsonObject();
+                    String cleanedText = cell.get("cleanedText").getAsString();
+                    doc.add(new TextField("column " + i, cleanedText, Field.Store.YES));
+                }
+                writer.addDocument(doc);
+                writer.commit();
+
+                long partial_time = System.currentTimeMillis();
+                if(j%100==0) {
+                    System.out.println(j+" "+((partial_time-file_Start_Time)/1000));
+                }
+
+               /* // Crea una mappa per memorizzare i valori "cleanedText" per ciascuna colonna
                 Map<Integer, List<String>> columnValues = new HashMap<>();
 
                 // Riempie la mappa con i valori "cleanedText" per ciascuna colonna
@@ -76,21 +92,33 @@ public class TableIndexer {
                         List<String> columnData = columnValues.get(c);
                         String columnDataString = String.join(", ",columnData);
                         // Aggiunge il campo colonna con il relativo contenuto della colonna
-                        doc.add(new TextField("column"+c,columnDataString,Field.Store.YES));
-                        //System.out.println("Column " + c + ": " + String.join(", ", columnData));
+                        doc.add(new TextField("column "+c,columnDataString,Field.Store.YES));
+                       // System.out.println("Column " + c + ": " + String.join(", ", columnData));
                     }
                 }
                 // Scrivi sull'indice
                 writer.addDocument(doc);
                 writer.commit();
+                long partial_time = System.currentTimeMillis();
+                if(j%100==0) {
+                    System.out.println(j+" "+((partial_time-file_Start_Time)/1000));
+
+                }
+            }*/
             }
             // Chiudi l'indice
             writer.close();
+
+            long file_End_Time = System.currentTimeMillis(); // fermo il tempo
+            long tempoTotale=(file_End_Time-file_Start_Time)/1000;
+            System.out.println("Tempo impiegato: "+tempoTotale);
+
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 }
+
 
 
 
