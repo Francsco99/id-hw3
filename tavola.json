@@ -1,0 +1,64 @@
+[
+    {
+        "_id": "table1",
+        "className": "EntityMapping",
+        "id": "table123",
+        "cells": [
+            {
+                "className": "CellEntity",
+                "innerHTML": "<div>HTML code of cell 1</div>",
+                "isHeader": "true",
+                "type": "unused",
+                "Coordinates": { "x": 0, "y": 0 },
+                "cleanedText": "Header 1"
+            },
+            {
+                "className": "CellEntity",
+                "innerHTML": "<div>HTML code of cell 2</div>",
+                "isHeader": "false",
+                "type": "unused",
+                "Coordinates": { "x": 1, "y": 0 },
+                "cleanedText": "Data 1"
+            }
+        ],
+        "beginIndex": 0,
+        "endIndex": 2,
+        "referenceContext": "Wikipedia Page A",
+        "type": "Type A",
+        "classe": "Class A",
+        "maxDimensions": { "width": 2, "height": 1 },
+        "headersCleaned": ["Header 1", "Header 2"],
+        "keyColumn": 1
+    },
+    {
+        "_id": "table2",
+        "className": "EntityMapping",
+        "id": "table456",
+        "cells": [
+            {
+                "className": "CellEntity",
+                "innerHTML": "<div>HTML code of cell 3</div>",
+                "isHeader": "true",
+                "type": "unused",
+                "Coordinates": { "x": 0, "y": 0 },
+                "cleanedText": "Header 1"
+            },
+            {
+                "className": "CellEntity",
+                "innerHTML": "<div>HTML code of cell 4</div>",
+                "isHeader": "false",
+                "type": "unused",
+                "Coordinates": { "x": 1, "y": 0 },
+                "cleanedText": "Data 2"
+            }
+        ],
+        "beginIndex": 3,
+        "endIndex": 5,
+        "referenceContext": "Wikipedia Page B",
+        "type": "Type B",
+        "classe": "Class B",
+        "maxDimensions": { "width": 2, "height": 1 },
+        "headersCleaned": ["Header 1", "Header 2"],
+        "keyColumn": 1
+    }
+]
