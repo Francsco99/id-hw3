@@ -86,12 +86,33 @@ public class TableIndexer {
                         writer.commit();
                     }
                 }
+                Document doc = new Document();
+                doc.add(new TextField("id", tableId, Field.Store.YES));
+                for (int i = 0; i < cells.size(); i++) {
+                    JsonObject cell = cells.get(i).getAsJsonObject();
+                    String cleanedText = cell.get("cleanedText").getAsString();
+                    doc.add(new TextField("column " + i, cleanedText, Field.Store.YES));
+                }
+                writer.addDocument(doc);
+                writer.commit();
+
+                long partial_time = System.currentTimeMillis();
+                if(j%100==0) {
+                    System.out.println(j+" "+((partial_time-file_Start_Time)/1000));
+                }
+
+
             }
 
             // Chiudi file JSON
             reader.close();
             // Chiudi l'indice
             writer.close();
+
+            long file_End_Time = System.currentTimeMillis(); // fermo il tempo
+            long tempoTotale=(file_End_Time-file_Start_Time)/1000;
+            System.out.println("Tempo impiegato: "+tempoTotale);
+
         } catch (IOException e) {
             e.printStackTrace();
         }
