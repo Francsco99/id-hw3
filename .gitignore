@@ -12,6 +12,9 @@ target/
 tabella.json
 tables.json
 .idea/uiDesigner.xml
+.idea/vcs.xml
+.idea/encodings.xml
+.idea.misc.xml
 *.iws
 *.iml
 *.ipr
