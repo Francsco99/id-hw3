@@ -23,18 +23,18 @@ import java.util.Map;
 
 public class TableIndexer {
 
-    public void tableIndexer(String jsonPath,String indexPath) {
+    public void tableIndexer(String jsonPath, String indexPath) {
         try {
             // Apre un file JSON contenente tabelle
             BufferedReader reader = new BufferedReader(new FileReader(jsonPath));
-            String line;
+            String line; // riga corrente del file json
             //int j = 0; // Contatore per le tabelle
 
             // Directory Lucene per indice
             Directory indexDirectory = FSDirectory.open(Paths.get(indexPath));
             // Writer per scrivere sull'indice
             IndexWriterConfig indexConfig = new IndexWriterConfig(new StandardAnalyzer());
-            IndexWriter writer = new IndexWriter(indexDirectory,indexConfig);
+            IndexWriter writer = new IndexWriter(indexDirectory, indexConfig);
             // Pulisco il vecchio indice
             writer.deleteAll();
 
@@ -46,51 +46,79 @@ public class TableIndexer {
                 int maxRows = maxDimensions.get("row").getAsInt(); // Ottiene il numero massimo di righe
                 int maxCols = maxDimensions.get("column").getAsInt(); // Ottiene il numero massimo di colonne
                 JsonArray cells = jsonTable.getAsJsonArray("cells"); // Ottiene l'array di celle
+                JsonArray headersCleaned = jsonTable.getAsJsonArray("headersCleaned");
 
-                //Stampa l'id della tabella corrente
-                //System.out.println("Tabella " + j + " " + tableId + " " + maxRows + " " + maxCols);
-                //j++;
+                for (int col = maxCols; col>=0; col--) { // per ogni colonna
+                    StringBuilder columnDataStringBuilder = new StringBuilder();
+                    String columnName = headersCleaned.get(col).getAsString();
 
-                // Crea una mappa per memorizzare i valori "cleanedText" per ciascuna colonna
-                Map<Integer, List<String>> columnValues = new HashMap<>();
+                    for (int i = 0; i < cells.size(); i++) {
+                        JsonObject cell = cells.get(i).getAsJsonObject();
+                        JsonObject coordinates = cell.getAsJsonObject("Coordinates");
+                        int cellCol = coordinates.get("column").getAsInt();
 
-                // Riempie la mappa con i valori "cleanedText" per ciascuna colonna
+                        if (cellCol == col) {
+                            String cleanedText = cell.get("cleanedText").getAsString();
+
+                                if (!columnDataStringBuilder.isEmpty()) {
+                                    columnDataStringBuilder.append(", ");
+                                }
+                                columnDataStringBuilder.append(cleanedText);
+                            }
+                        }
+
+                    if (columnDataStringBuilder.length() > 0) {
+                        // Nuovo documento Lucene per l'indice
+                        Document doc = new Document();
+                        doc.add(new TextField("id", tableId, Field.Store.YES));
+                        // Aggiunge il campo colonna con il relativo contenuto della colonna
+                        doc.add(new TextField("dataColumn" + col, columnDataStringBuilder.toString(), Field.Store.YES));
+                        // Aggiunge il nome della colonna
+                        if (columnName != null) {
+                            doc.add(new TextField("column" + col + "_name", columnName, Field.Store.YES));
+                        }
+                        System.out.println(tableId + "\n");
+                        System.out.println(columnName + "\n");
+                        System.out.println(columnDataStringBuilder.toString() + "\n\n\n");
+
+                        // Scrivi sull'indice
+                        writer.addDocument(doc);
+                        writer.commit();
+                    }
+                }
+                Document doc = new Document();
+                doc.add(new TextField("id", tableId, Field.Store.YES));
                 for (int i = 0; i < cells.size(); i++) {
                     JsonObject cell = cells.get(i).getAsJsonObject();
-                    JsonObject coordinates = cell.getAsJsonObject("Coordinates");
-                    int col = coordinates.get("column").getAsInt();
                     String cleanedText = cell.get("cleanedText").getAsString();
-                    // Aggiunge il valore alla colonna corrispondente
-                    if (!columnValues.containsKey(col)) {
-                        columnValues.put(col, new ArrayList<>());
-                    }
-                    columnValues.get(col).add(cleanedText);
+                    doc.add(new TextField("column " + i, cleanedText, Field.Store.YES));
                 }
-                // Nuovo documento Lucene per l'indice
-                Document doc = new Document();
-                // Aggiunge il campo id
-                doc.add(new TextField("id",tableId,Field.Store.YES));
-                // Itera sulle colonne della mappa per salvare il contenuto sull'indice
-                for (int c = 0; c <= maxCols; c++) {
-                    if (columnValues.containsKey(c)) {
-                        List<String> columnData = columnValues.get(c);
-                        String columnDataString = String.join(", ",columnData);
-                        // Aggiunge il campo colonna con il relativo contenuto della colonna
-                        doc.add(new TextField("column"+c,columnDataString,Field.Store.YES));
-                        //System.out.println("Column " + c + ": " + String.join(", ", columnData));
-                    }
-                }
-                // Scrivi sull'indice
                 writer.addDocument(doc);
                 writer.commit();
+
+                long partial_time = System.currentTimeMillis();
+                if(j%100==0) {
+                    System.out.println(j+" "+((partial_time-file_Start_Time)/1000));
+                }
+
+
             }
+
+            // Chiudi file JSON
+            reader.close();
             // Chiudi l'indice
             writer.close();
+
+            long file_End_Time = System.currentTimeMillis(); // fermo il tempo
+            long tempoTotale=(file_End_Time-file_Start_Time)/1000;
+            System.out.println("Tempo impiegato: "+tempoTotale);
+
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 }
+
 
 
 
