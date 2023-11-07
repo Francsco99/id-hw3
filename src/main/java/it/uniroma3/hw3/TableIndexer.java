@@ -46,10 +46,11 @@ public class TableIndexer {
                 int maxRows = maxDimensions.get("row").getAsInt(); // Ottiene il numero massimo di righe
                 int maxCols = maxDimensions.get("column").getAsInt(); // Ottiene il numero massimo di colonne
                 JsonArray cells = jsonTable.getAsJsonArray("cells"); // Ottiene l'array di celle
+                JsonArray headersCleaned = jsonTable.getAsJsonArray("headersCleaned");
 
-                for (int col = 0; col <= maxCols; col++) { // per ogni colonna
+                for (int col = maxCols; col>=0; col--) { // per ogni colonna
                     StringBuilder columnDataStringBuilder = new StringBuilder();
-                    String columnName = null;
+                    String columnName = headersCleaned.get(col).getAsString();
 
                     for (int i = 0; i < cells.size(); i++) {
                         JsonObject cell = cells.get(i).getAsJsonObject();
@@ -58,24 +59,20 @@ public class TableIndexer {
 
                         if (cellCol == col) {
                             String cleanedText = cell.get("cleanedText").getAsString();
-                            if (i == 0) {
-                                // Se è la riga 0, conserva il nome della colonna
-                                columnName = cleanedText;
-                            } else {
-                                if (columnDataStringBuilder.length() > 0) {
+
+                                if (!columnDataStringBuilder.isEmpty()) {
                                     columnDataStringBuilder.append(", ");
                                 }
                                 columnDataStringBuilder.append(cleanedText);
                             }
                         }
-                    }
 
                     if (columnDataStringBuilder.length() > 0) {
                         // Nuovo documento Lucene per l'indice
                         Document doc = new Document();
                         doc.add(new TextField("id", tableId, Field.Store.YES));
                         // Aggiunge il campo colonna con il relativo contenuto della colonna
-                        doc.add(new TextField("column" + col, columnDataStringBuilder.toString(), Field.Store.YES));
+                        doc.add(new TextField("dataColumn" + col, columnDataStringBuilder.toString(), Field.Store.YES));
                         // Aggiunge il nome della colonna
                         if (columnName != null) {
                             doc.add(new TextField("column" + col + "_name", columnName, Field.Store.YES));
