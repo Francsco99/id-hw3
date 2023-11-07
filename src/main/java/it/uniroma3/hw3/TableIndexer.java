@@ -22,7 +22,7 @@ import java.util.Map;
 public class TableIndexer {
     final static int PRINT_INTERVAL = 100000; // costante per scegliere ogni quanto stampare il messaggio di avanzamento
 
-    public void tableIndexer(String jsonPath, String indexPath) {
+    public  Map<String, StringBuilder> tableIndexer(String jsonPath, String indexPath) {
         try {
             /*VARIABILI PER STATISTICHE*/
             int tableCount = 0; // indica la tabella che sto processando
@@ -39,6 +39,7 @@ public class TableIndexer {
             writer.deleteAll(); // Pulisco il vecchio indice
 
             /*ITERA SU TUTTE LE RIGHE DEL FILE "tables.json"*/
+            Map<String, StringBuilder> columnData = null;
             while ((line = reader.readLine()) != null) {
                 /*ESTRAZIONE METADATI DELLA TABELLA CORRENTE*/
                 JsonObject jsonTable = JsonParser.parseString(line).getAsJsonObject();  // Analizza la riga corrente come oggetto JSON
@@ -49,7 +50,7 @@ public class TableIndexer {
 
                 /*MAPPA CHE HA COME CHIAVE IL NOME DI UNA COLONNA E
                  * COME VALORE TUTTI I CONTENUTI DELLE CELLE ASSOCIATE*/
-                Map<String, StringBuilder> columnData = new HashMap<>();
+                columnData = new HashMap<>();
 
                 /*ITERA SU TUTTE LE CELLE DELLA TABELLA CORRENTE*/
                 for (int i = 0; i < cells.size(); i++) {
@@ -110,10 +111,12 @@ public class TableIndexer {
             long endIndexingTime = System.currentTimeMillis();  // Istante di fine del processamento del file
 
             System.out.println("Finita indicizzazione in " + (endIndexingTime - startIndexingTime) / 60000 + " minuti");    // Stampa in minuti del tempo di processamento
-
+            return columnData;
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        return null;
     }
 }
 
