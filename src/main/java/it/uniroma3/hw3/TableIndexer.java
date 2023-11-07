@@ -16,109 +16,104 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class TableIndexer {
+    final static int PRINT_INTERVAL = 100000; // costante per scegliere ogni quanto stampare il messaggio di avanzamento
 
     public void tableIndexer(String jsonPath, String indexPath) {
         try {
-            // Apre un file JSON contenente tabelle
-            BufferedReader reader = new BufferedReader(new FileReader(jsonPath));
-            String line; // riga corrente del file json
-            //int j = 0; // Contatore per le tabelle
+            /*VARIABILI PER STATISTICHE*/
+            int tableCount = 0; // indica la tabella che sto processando
+            long startIndexingTime = System.currentTimeMillis(); // istante di inizio del processamento tabelle
 
-            // Directory Lucene per indice
-            Directory indexDirectory = FSDirectory.open(Paths.get(indexPath));
-            // Writer per scrivere sull'indice
-            IndexWriterConfig indexConfig = new IndexWriterConfig(new StandardAnalyzer());
+            /*LETTURA DELLE TABELLE*/
+            BufferedReader reader = new BufferedReader(new FileReader(jsonPath));   // Apre un file json contenente tabelle
+            String line;    // riga corrente del file json
+
+            /*LUCENE SETUP*/
+            Directory indexDirectory = FSDirectory.open(Paths.get(indexPath));  // Directory Lucene per indice
+            IndexWriterConfig indexConfig = new IndexWriterConfig(new StandardAnalyzer());  // Writer per scrivere sull'indice
             IndexWriter writer = new IndexWriter(indexDirectory, indexConfig);
-            // Pulisco il vecchio indice
-            writer.deleteAll();
+            writer.deleteAll(); // Pulisco il vecchio indice
 
+            /*ITERA SU TUTTE LE RIGHE DEL FILE "tables.json"*/
             while ((line = reader.readLine()) != null) {
-                // Analizza la riga corrente come oggetto JSON
-                JsonObject jsonTable = JsonParser.parseString(line).getAsJsonObject();
+                /*ESTRAZIONE METADATI DELLA TABELLA CORRENTE*/
+                JsonObject jsonTable = JsonParser.parseString(line).getAsJsonObject();  // Analizza la riga corrente come oggetto JSON
                 String tableId = jsonTable.get("id").getAsString(); // Ottiene l'ID della tabella
-                JsonObject maxDimensions = jsonTable.getAsJsonObject("maxDimensions");
-                int maxRows = maxDimensions.get("row").getAsInt(); // Ottiene il numero massimo di righe
-                int maxCols = maxDimensions.get("column").getAsInt(); // Ottiene il numero massimo di colonne
-                JsonArray cells = jsonTable.getAsJsonArray("cells"); // Ottiene l'array di celle
-                JsonArray headersCleaned = jsonTable.getAsJsonArray("headersCleaned");
+                int maxCols = jsonTable.getAsJsonObject("maxDimensions").get("column").getAsInt(); // Ottiene il numero massimo di colonne
+                JsonArray cells = jsonTable.getAsJsonArray("cells"); // Ottiene l'array di celle della riga corrente
+                String[] nomiColonne = new String[maxCols + 1]; // Array con i nomi delle colonne della tabella corrente
 
-                for (int col = maxCols; col>=0; col--) { // per ogni colonna
-                    StringBuilder columnDataStringBuilder = new StringBuilder();
-                    String columnName = headersCleaned.get(col).getAsString();
+                /*MAPPA CHE HA COME CHIAVE IL NOME DI UNA COLONNA E
+                 * COME VALORE TUTTI I CONTENUTI DELLE CELLE ASSOCIATE*/
+                Map<String, StringBuilder> columnData = new HashMap<>();
 
-                    for (int i = 0; i < cells.size(); i++) {
-                        JsonObject cell = cells.get(i).getAsJsonObject();
-                        JsonObject coordinates = cell.getAsJsonObject("Coordinates");
-                        int cellCol = coordinates.get("column").getAsInt();
+                /*ITERA SU TUTTE LE CELLE DELLA TABELLA CORRENTE*/
+                for (int i = 0; i < cells.size(); i++) {
+                    JsonObject cell = cells.get(i).getAsJsonObject();   // Estrai la cella corrente come oggetto JSON
+                    JsonObject coordinates = cell.getAsJsonObject("Coordinates"); // Estrai le coordinate della cella corrente
+                    int col = coordinates.get("column").getAsInt(); // Estrae la coordinata della colonna
+                    int row = coordinates.get("row").getAsInt();    // Estrae la coordinata della riga
+                    String cleanedText = cell.get("cleanedText").getAsString(); // Estrae il contenuto della cella
 
-                        if (cellCol == col) {
-                            String cleanedText = cell.get("cleanedText").getAsString();
-
-                                if (!columnDataStringBuilder.isEmpty()) {
-                                    columnDataStringBuilder.append(", ");
-                                }
-                                columnDataStringBuilder.append(cleanedText);
-                            }
-                        }
-
-                    if (columnDataStringBuilder.length() > 0) {
-                        // Nuovo documento Lucene per l'indice
-                        Document doc = new Document();
-                        doc.add(new TextField("id", tableId, Field.Store.YES));
-                        // Aggiunge il campo colonna con il relativo contenuto della colonna
-                        doc.add(new TextField("dataColumn" + col, columnDataStringBuilder.toString(), Field.Store.YES));
-                        // Aggiunge il nome della colonna
-                        if (columnName != null) {
-                            doc.add(new TextField("column" + col + "_name", columnName, Field.Store.YES));
-                        }
-                        System.out.println(tableId + "\n");
-                        System.out.println(columnName + "\n");
-                        System.out.println(columnDataStringBuilder.toString() + "\n\n\n");
-
-                        // Scrivi sull'indice
-                        writer.addDocument(doc);
-                        writer.commit();
+                    /*SE TI TROVI SULLA RIGA 0, ALLORA VUOL DIRE CHE IL CONTENUTO
+                    DELLA CELLA CORRENTE È L'INTESTAZIONE DELLA COLONNA, QUINDI
+                    SALVALO NELL'ARRAY DEI NOMI DELLE COLONNE
+                     */
+                    if (row == 0) {
+                        nomiColonne[col] = (cleanedText);
+                    }
+                    /*ALTRIMENTI SALVA IL CONTENUTO DELLA COLONNA NELLA MAPPA
+                    USANDO COME CHIAVE IL NOME DELLA COLONNA
+                     */
+                    else {
+                        String columnName = nomiColonne[col];
+                        // Aggiungi il valore di cleanedText alla colonna corrispondente
+                        columnData.computeIfAbsent(columnName, k -> new StringBuilder()).append(cleanedText).append(",");
                     }
                 }
-                Document doc = new Document();
-                doc.add(new TextField("id", tableId, Field.Store.YES));
-                for (int i = 0; i < cells.size(); i++) {
-                    JsonObject cell = cells.get(i).getAsJsonObject();
-                    String cleanedText = cell.get("cleanedText").getAsString();
-                    doc.add(new TextField("column " + i, cleanedText, Field.Store.YES));
-                }
-                writer.addDocument(doc);
-                writer.commit();
-
-                long partial_time = System.currentTimeMillis();
-                if(j%100==0) {
-                    System.out.println(j+" "+((partial_time-file_Start_Time)/1000));
+                /*STAMPA DELLO STATO DI AVANZAMENTO*/
+                if (tableCount % PRINT_INTERVAL == 0) {
+                    System.out.println("Processate  " + tableCount + " tabelle");
                 }
 
+                /*STAMPA DELLA MAPPA DELLA TABELLA CORRENTE
+                for (Map.Entry<String, StringBuilder> entry : columnData.entrySet()) {
+                    String col = entry.getKey();
+                    String aggregatedText = entry.getValue().toString().trim();
+                    System.out.println("Colonna " + col + ": " + aggregatedText);
+                }*/
 
+                /*AGGIUNTA DELLA TABELLA CORRENTE ALL'INDICE LUCENE*/
+                Document doc = new Document();  // Creazione di un documento
+                doc.add(new TextField("id", tableId, Field.Store.YES));   // Aggiungi l'id della tabella nel campo id
+
+                /*SCORRI LA MAPPA E AGGIUNGI TUTTE LE COLONNE*/
+                for (Map.Entry<String, StringBuilder> entry : columnData.entrySet()) {
+                    if (entry.getKey() != null) {
+                        doc.add(new TextField(entry.getKey(), (entry.getValue().toString()), Field.Store.YES));
+                    } else {
+                        doc.add(new TextField(" ", (entry.getValue().toString()), Field.Store.YES));
+                    }
+                }
+                writer.addDocument(doc);    // Aggiungi il documento
+
+                tableCount++; // Incrementa il contatore delle tabelle
             }
+            reader.close(); // Chiudi file JSON
+            writer.commit(); // Commit del documento
+            writer.close(); // Chiudi l'indice
 
-            // Chiudi file JSON
-            reader.close();
-            // Chiudi l'indice
-            writer.close();
+            long endIndexingTime = System.currentTimeMillis();  // Istante di fine del processamento del file
 
-            long file_End_Time = System.currentTimeMillis(); // fermo il tempo
-            long tempoTotale=(file_End_Time-file_Start_Time)/1000;
-            System.out.println("Tempo impiegato: "+tempoTotale);
+            System.out.println("Finita indicizzazione in " + (endIndexingTime - startIndexingTime) / 60000 + " minuti");    // Stampa in minuti del tempo di processamento
 
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 }
-
-
-
 
