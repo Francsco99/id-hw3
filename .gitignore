@@ -8,6 +8,10 @@ target/
 .idea/jarRepositories.xml
 .idea/compiler.xml
 .idea/libraries/
+/index
+tabella.json
+tables.json
+.idea/uiDesigner.xml
 .idea/vcs.xml
 .idea/encodings.xml
 .idea.misc.xml
