@@ -10,8 +10,8 @@ import java.util.Set;
 
 public class Main {
 
-    final static String TABLE_PATH = "C:/Users/franc/Desktop/hw3_dati/tables/tables.json";
-    final static String INDEX_PATH = "C:/Users/franc/Desktop/hw3_dati/tables/indice";
+    final static String INDEX_PATH = System.getProperty("user.dir")+"/index";
+    final static String TABLE_PATH = System.getProperty("user.dir")+"/tables.json";
 
     public static void main(String[] args) throws IOException {
         TableIndexer tr = new TableIndexer();
@@ -19,8 +19,8 @@ public class Main {
         Codec codec = new SimpleTextCodec();
         Set<String> set = new HashSet<>();
 
-        //tr.tableIndexer(TABLE_PATH, INDEX_PATH, codec);
-        String s = "crimes";
+        tr.tableIndexer(TABLE_PATH, INDEX_PATH, codec);
+/*        String s = "crimes";
         String c = "plural";
         String d = "singular";
 
@@ -29,7 +29,7 @@ public class Main {
 
         set.add(d);
 
-        search.read_from_index(INDEX_PATH, set);
+        search.read_from_index(INDEX_PATH, set);*/
 
 
         /*int count = 0;
