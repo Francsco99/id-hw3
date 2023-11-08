@@ -26,7 +26,7 @@ import java.util.Map;
 public class TableIndexer {
     final static int PRINT_INTERVAL = 100000; // costante per scegliere ogni quanto stampare il messaggio di avanzamento
 
-    public void tableIndexer(String jsonPath, String indexPath, Codec codec) {
+    public void tableIndexer(String jsonPath, String indexPath) {
         try {
             /*VARIABILI PER STATISTICHE*/
             int tableCount = 0; // indica la tabella che sto processando
@@ -39,14 +39,12 @@ public class TableIndexer {
             /*LUCENE SETUP*/
             Directory indexDirectory = FSDirectory.open(Paths.get(indexPath));  // Directory Lucene per indice
             IndexWriterConfig indexConfig = new IndexWriterConfig(new KeywordAnalyzer());  // Writer per scrivere sull'indice
-            /*if (codec != null) {
-                indexConfig.setCodec(codec);
-            }*/
+
             IndexWriter writer = new IndexWriter(indexDirectory, indexConfig);
             writer.deleteAll(); // Pulisco il vecchio indice
 
             /*ITERA SU TUTTE LE RIGHE DEL FILE "tables.json"*/
-            Map<String, ArrayList<String>> columnData = null;
+            Map<String, ArrayList<String>> columnData;
 
 
             while ((line = reader.readLine()) != null) {
@@ -110,7 +108,7 @@ public class TableIndexer {
                         //System.out.println(stringa);
 
                         if (entry.getKey() != null) {
-                            doc.add(new TextField("colonna", entry.getKey(), Field.Store.YES));
+                            doc.add(new TextField("colonna", columnName, Field.Store.YES));
                             doc.add(new TextField("contenuto", columnValue, Field.Store.YES));
                         } else {
                             doc.add(new TextField("colonna", " ", Field.Store.YES));

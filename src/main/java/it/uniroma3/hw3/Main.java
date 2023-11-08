@@ -3,9 +3,6 @@ package it.uniroma3.hw3;
 import org.apache.lucene.codecs.Codec;
 import org.apache.lucene.codecs.simpletext.SimpleTextCodec;
 
-import java.util.HashSet;
-import java.util.Set;
-
 public class Main {
 
     final static String INDEX_PATH = System.getProperty("user.dir")+"/index";
@@ -17,7 +14,7 @@ public class Main {
         Codec codec = new SimpleTextCodec();
         //Set<String> set = new HashSet<>();
 
-        tr.tableIndexer(TABLE_PATH, INDEX_PATH, codec);
+        tr.tableIndexer(TABLE_PATH, INDEX_PATH);
 
 /*      String s = "crimes";
         String c = "plural";
