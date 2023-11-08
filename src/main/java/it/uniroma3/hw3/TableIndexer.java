@@ -5,12 +5,9 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.apache.lucene.analysis.core.KeywordAnalyzer;
-import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.codecs.Codec;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
-import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
@@ -21,10 +18,10 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class TableIndexer {
     final static int PRINT_INTERVAL = 100000; // costante per scegliere ogni quanto stampare il messaggio di avanzamento
@@ -49,8 +46,7 @@ public class TableIndexer {
             writer.deleteAll(); // Pulisco il vecchio indice
 
             /*ITERA SU TUTTE LE RIGHE DEL FILE "tables.json"*/
-            Map<String, StringBuilder> columnData = null;
-
+            Map<String, ArrayList<String>> columnData = null;
 
 
             while ((line = reader.readLine()) != null) {
@@ -86,7 +82,7 @@ public class TableIndexer {
                     else {
                         String columnName = nomiColonne[col];
                         // Aggiungi il valore di cleanedText alla colonna corrispondente
-                        columnData.computeIfAbsent(columnName, k -> new StringBuilder()).append(cleanedText).append(",");
+                        columnData.computeIfAbsent(columnName, k -> new ArrayList<>()).add(cleanedText);
                     }
                 }
                 /*STAMPA DELLO STATO DI AVANZAMENTO*/
@@ -104,9 +100,10 @@ public class TableIndexer {
 
 
                 /*SCORRI LA MAPPA E AGGIUNGI TUTTE LE COLONNE*/
-                for (Map.Entry<String, StringBuilder> entry : columnData.entrySet()) {
-                    String string_with_commas = entry.getValue().toString();
-                    for (String stringa : string_with_commas.split(",")) {
+                for (Map.Entry<String, ArrayList<String>> entry : columnData.entrySet()) {
+                    String columnName = entry.getKey();
+                    List<String> columnValues = entry.getValue();
+                    for (String columnValue : columnValues) {
 
                         Document doc = new Document();  // Creazione di un documento
                         doc.add(new TextField("id", tableId, Field.Store.YES));   // Aggiungi l'id della tabella nel campo id
@@ -114,10 +111,10 @@ public class TableIndexer {
 
                         if (entry.getKey() != null) {
                             doc.add(new TextField("colonna", entry.getKey(), Field.Store.YES));
-                            doc.add(new TextField("contenuto", stringa, Field.Store.YES));
+                            doc.add(new TextField("contenuto", columnValue, Field.Store.YES));
                         } else {
                             doc.add(new TextField("colonna", " ", Field.Store.YES));
-                            doc.add(new TextField("contenuto", stringa, Field.Store.YES));
+                            doc.add(new TextField("contenuto", columnValue, Field.Store.YES));
                         }
                         writer.addDocument(doc);    // Aggiungi il documento
                     }
@@ -133,7 +130,6 @@ public class TableIndexer {
             long endIndexingTime = System.currentTimeMillis();  // Istante di fine del processamento del file
 
             System.out.println("Finita indicizzazione in " + (endIndexingTime - startIndexingTime) / 60000 + " minuti");    // Stampa in minuti del tempo di processamento
-
 
         } catch (IOException e) {
             e.printStackTrace();
