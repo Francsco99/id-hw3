@@ -11,7 +11,6 @@ public class Main {
     public static void main(String[] args){
         TableIndexer tr = new TableIndexer();
         //Searcher search = new Searcher();
-        Codec codec = new SimpleTextCodec();
         //Set<String> set = new HashSet<>();
 
         tr.tableIndexer(TABLE_PATH, INDEX_PATH);
