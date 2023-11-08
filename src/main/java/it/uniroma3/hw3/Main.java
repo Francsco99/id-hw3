@@ -1,8 +1,5 @@
 package it.uniroma3.hw3;
 
-import org.apache.lucene.codecs.Codec;
-import org.apache.lucene.codecs.simpletext.SimpleTextCodec;
-
 public class Main {
 
     final static String INDEX_PATH = System.getProperty("user.dir")+"/index";
