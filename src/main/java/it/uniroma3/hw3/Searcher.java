@@ -1,3 +1,4 @@
+
 package it.uniroma3.hw3;
 
 import org.apache.lucene.document.Document;
@@ -18,9 +19,11 @@ public class Searcher {
         IndexReader reader = DirectoryReader.open(directory_index);
         IndexSearcher searcher = new IndexSearcher(reader);
 
+
         /*HASH MAP CHE HA COME CHIAVE IL TERMINE CERCATO E COME VALORE
-         * L'INSIEME DI COLONNE CHE CONTENGONO QUEL TERMINE*/
-        Map<String, Set<String>> termToColumnsMap = new HashMap<>();
+         * L'INSIEME DI COLONNE E ID TABLE CHE CONTENGONO QUEL TERMINE*/
+
+        Map<String, Set<String[]>> termToColumnsAndIDsMap = new HashMap<>();
 
         for (String termine : inputTermsSet) {
             PhraseQuery.Builder builder = new PhraseQuery.Builder();
@@ -38,10 +41,26 @@ public class Searcher {
                 String id = doc.get("id");
                 System.out.println("valore dell'id della tabella ----->>>>---->>>>"+id + "Colonna---->" + colonnaValue);
 
-                // Se la chiave contenuto non è presente nella mappa, creala e aggiungi una nuova lista
-                termToColumnsMap.computeIfAbsent(contenuto, k -> new HashSet<>());
-                // Aggiungi il valore di colonna alla lista associata alla chiave contenuto
-                termToColumnsMap.get(contenuto).add(colonnaValue);
+                // Crea una tupla di stringhe per colonnaValue e ID
+                String[] tuple = new String[]{colonnaValue, id};
+
+                // Verifica se contenuto è già presente come chiave nella mappa
+                if (!termToColumnsAndIDsMap.containsKey(contenuto)) {
+                    // Se contenuto non è presente nella mappa, aggiungi contenuto e la tupla corrispondente
+                    termToColumnsAndIDsMap.computeIfAbsent(contenuto, k -> new HashSet<>())
+                            .add(tuple);
+                } else {
+                    // Se contenuto è già presente nella mappa, verifica se esiste una tupla con lo stesso primo termine
+                    boolean canAddTuple = termToColumnsAndIDsMap.get(contenuto).stream()
+                            .noneMatch(existingTuple -> existingTuple[0].equals(colonnaValue));
+
+                    // Se non esiste una tupla con lo stesso primo termine, aggiungi la tupla
+                    if (canAddTuple) {
+                        termToColumnsAndIDsMap.get(contenuto).add(tuple);
+                    }
+                }
+
+
             }
         }
 
@@ -49,26 +68,16 @@ public class Searcher {
         System.out.println("\n");
         System.out.println("Stampo l'indice invertito:");
         System.out.println("\n");
-        for (Map.Entry<String, Set<String>> entry : termToColumnsMap.entrySet()) {
+        for (Map.Entry<String, Set<String[]>> entry : termToColumnsAndIDsMap.entrySet()) {
             System.out.println("Value: " + entry.getKey());
-            System.out.println("NomiColonne: " + entry.getValue());
+            Set<String[]> columnIdTuple = entry.getValue();
+            for (String[] tuple : columnIdTuple) {
+                System.out.println("NomiColonne: " + tuple[0]);
+                System.out.println("IdTables: " + tuple[1]);
+            }
             System.out.println("\n");
         }
         Merge m = new Merge();
-        m.mergeList(termToColumnsMap);
+        m.mergeList(termToColumnsAndIDsMap);
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -20,7 +20,7 @@ public class Main {
         Set<String> set = new HashSet<>();
 
         //tr.tableIndexer(TABLE_PATH, INDEX_PATH, codec);
-        String s = "crimes";
+        String s = "War crimes";
         String c = "plural";
         String d = "singular";
 
@@ -31,22 +31,5 @@ public class Main {
 
         search.read_from_index(INDEX_PATH, set);
 
-
-        /*int count = 0;
-        for (Map.Entry<String, Set<String>> entry : invertedIndex.entrySet()) {
-            if (count >= 50) {
-                break;
-            }
-            String key = entry.getKey();
-            Set<String> columns = entry.getValue();
-            System.out.println("Element: " + key);
-            System.out.println("Columns: " + columns);
-            System.out.println("\n\n");
-
-            count++;
-        }
-        int numeroDiChiavi = invertedIndex.size();
-
-        System.out.println("Numero di chiavi nell'HashMap: " + numeroDiChiavi);*/
     }
 }

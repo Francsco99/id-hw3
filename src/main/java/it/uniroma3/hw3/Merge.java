@@ -1,46 +1,102 @@
 package it.uniroma3.hw3;
 
+
+
 import java.util.*;
 
 public class Merge {
-    public void mergeList(Map<String, Set<String>> mappaSearcher) {
-        Map<String, Integer> set2Count = new HashMap<>();
+    public void mergeList(Map<String, Set<String[]>> mappaSearcher) {
+        Map<String, Object[]> set2Count = new HashMap<>(); // crea una nuova mappa per il conteggio(chiave: nome colonna e valore:Set tupla occorrenza, idtable
         /* ITERA SU OGNI CHIAVE DELLA MAPPA */
         for (String chiave : mappaSearcher.keySet()) {
+            Set<String[]> setValori = mappaSearcher.get(chiave);
 
-            Set<String> setValori = mappaSearcher.get(chiave); // set di stringhe della chiave corrente
-            /* ITERA SU OGNI STRINGA DI setValori */
-            for (String valore : setValori) {
-                // verifica se la stringa è già presente nella mappa set2Count
-                if (set2Count.containsKey(valore)) {
-                    // la stringa è già presente perciò incrementa il valore
-                    int conteggio = set2Count.get(valore);
-                    set2Count.put(valore, conteggio+1);
+            for (String[] valore : setValori) {
+                String colonna = valore[0];
+                String id = valore[1];
+
+                if (set2Count.containsKey(colonna)) {
+                    int conteggio = (int) set2Count.get(colonna)[0]; // Conteggio della colonna
+                    Object[] tupla = new Object[]{conteggio + 1, id};
+                    set2Count.put(colonna, tupla);
+
                 } else {
-                    // la stringa non è presente, quindi aggiungila con valore 1
-                    set2Count.put(valore, 1);
+                    Object[] tupla = new Object[]{1, id};
+                    set2Count.put(colonna, tupla);
                 }
+
             }
 
         }
+        /* ORDINAMENTO PER VALORI DECRESCENTI DI CONTEGGIO */
 
-        // Estrai i valori dalla mappa e memorizzali in una lista in modo da ordinare la mappa
-        List<Map.Entry<String, Integer>> listaValoriDisordinata = new ArrayList<>(set2Count.entrySet());
+        // Creo una LinkedHashMap vuota per mantenere le voci ordinate secondo la voce conteggio
+        LinkedHashMap<String, Object[]> sortedMap = new LinkedHashMap<>();
 
-        // Ordina la lista dei valori in ordine decrescente
-        listaValoriDisordinata.sort((entry1, entry2) -> entry2.getValue().compareTo(entry1.getValue()));
+        // Creare una lista temporanea di voci della mappa
+        List<Map.Entry<String, Object[]>> entryList = new ArrayList<>(set2Count.entrySet());
 
-        // Crea una nuova mappa ordinata
-        Map<String, Integer> set2CountOrdinata = new LinkedHashMap<>();
-        for (Map.Entry<String, Integer> entry : listaValoriDisordinata) {
-            set2CountOrdinata.put(entry.getKey(), entry.getValue());
+        // Ordina la lista in base al conteggio in ordine decrescente
+        Collections.sort(entryList, (entry1, entry2) -> {
+            int conteggio1 = (int) entry1.getValue()[0];
+            int conteggio2 = (int) entry2.getValue()[0];
+            return Integer.compare(conteggio2, conteggio1);
+        });
+
+        // Riempio la LinkedHashMap ordinata con le voci
+        for (Map.Entry<String, Object[]> entry : entryList) {
+            sortedMap.put(entry.getKey(), entry.getValue());
         }
 
-        // Stampa la mappa set2CountOrdinata
-        System.out.println("\n\nMappa del conteggio set2Count ordinata in modo decrescente:");
-        System.out.println("\n");
-        for (Map.Entry<String, Integer> entry : set2CountOrdinata.entrySet()) {
-            System.out.println("Colonna: " + entry.getKey() + ", Occorrenza: " + entry.getValue());
+        // stampa della mappa ordinata
+        for (Map.Entry<String, Object[]> entry : sortedMap.entrySet()) {
+            String colonna = entry.getKey();
+            Object[] tupla = entry.getValue();
+            int conteggio = (int) tupla[0];
+            String id = (String) tupla[1];
+            System.out.println("Colonna: " + colonna + ", Conteggio: " + conteggio + ", ID: " + id);
         }
     }
 }
+
+
+
+
+
+
+
+
+   /*
+
+
+
+        // Converti la mappa in una lista di Map.Entry
+        List<Map.Entry<String, Object[]>> entryList = new ArrayList<>(set2Count.entrySet());
+
+        // Ordina la lista in base al valore del primo campo della tupla (conteggio)
+        Collections.sort(entryList, (entry1, entry2) -> {
+            int conteggio1 = (int) entry1.getValue()[0];
+            int conteggio2 = (int) entry2.getValue()[0];
+            return Integer.compare(conteggio2, conteggio1); // Ordine decrescente
+        });
+
+        // Crea una nuova mappa ordinata
+        Map<String, Object[]> set2CountOrdinata = new LinkedHashMap<>();
+        for (Map.Entry<String, Object[]> entry : entryList) {
+            set2CountOrdinata.put(entry.getKey(), entry.getValue());
+        }
+
+        // set2CountOrdinata ora contiene la mappa ordinata
+
+        // stampa della mappa
+        for (Map.Entry<String, Object[]> entry : set2CountOrdinata.entrySet()) {
+            String colonna = entry.getKey();
+            Object[] tupla = entry.getValue();
+            int conteggio = (int) tupla[0];
+            String id = (String) tupla[1];
+            System.out.println("Colonna: " + colonna + ", Conteggio: " + conteggio + ", ID: " + id);
+        }
+    }
+}
+
+*/
