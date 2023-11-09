@@ -1,8 +1,6 @@
 package it.uniroma3.hw3;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class Merge {
     public void mergeList(Map<String, Set<String>> mappaSearcher) {
@@ -25,10 +23,24 @@ public class Merge {
             }
 
         }
-        // Stampa la mappa set2Count
-        System.out.println("Mappa del conteggio set2Count");
-        for (Map.Entry<String, Integer> entry : set2Count.entrySet()) {
-            System.out.println("Chiave: " + entry.getKey() + ", Valore: " + entry.getValue());
+
+        // Estrai i valori dalla mappa e memorizzali in una lista in modo da ordinare la mappa
+        List<Map.Entry<String, Integer>> listaValoriDisordinata = new ArrayList<>(set2Count.entrySet());
+
+        // Ordina la lista dei valori in ordine decrescente
+        listaValoriDisordinata.sort((entry1, entry2) -> entry2.getValue().compareTo(entry1.getValue()));
+
+        // Crea una nuova mappa ordinata
+        Map<String, Integer> set2CountOrdinata = new LinkedHashMap<>();
+        for (Map.Entry<String, Integer> entry : listaValoriDisordinata) {
+            set2CountOrdinata.put(entry.getKey(), entry.getValue());
+        }
+
+        // Stampa la mappa set2CountOrdinata
+        System.out.println("\n\nMappa del conteggio set2Count ordinata in modo decrescente:");
+        System.out.println("\n");
+        for (Map.Entry<String, Integer> entry : set2CountOrdinata.entrySet()) {
+            System.out.println("Colonna: " + entry.getKey() + ", Occorrenza: " + entry.getValue());
         }
     }
 }

@@ -10,8 +10,8 @@ import java.util.Set;
 
 public class Main {
 
-    final static String TABLE_PATH = "C:/Users/franc/Desktop/hw3_dati/tables/tables.json";
-    final static String INDEX_PATH = "C:/Users/franc/Desktop/hw3_dati/tables/indice";
+    final static String TABLE_PATH = "C:/Users/fsali/Desktop/hw3_dati/tables/tables.json";
+    final static String INDEX_PATH = "C:/Users/fsali/Desktop/hw3_dati/tables/indice";
 
     public static void main(String[] args) throws IOException {
         TableIndexer tr = new TableIndexer();
