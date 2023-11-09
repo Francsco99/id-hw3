@@ -1,9 +1,11 @@
 package it.uniroma3.hw3;
 
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Term;
+import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.*;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
@@ -13,7 +15,7 @@ import java.nio.file.Paths;
 import java.util.*;
 
 public class Searcher {
-
+    PrintColored printer = new PrintColored(); // Per stampare i messaggi colorati
     /*LEGGE DATI DA UN SET IN INPUT E CERCA NELL'INDICE I TOKEN CORRISPONDENTI*/
     public void read_from_index(String indexPath, Set<String> inputTermsSet) throws IOException {
         /*LUCENE SETUP*/
@@ -34,6 +36,7 @@ public class Searcher {
             Term term = new Term("contenuto", termine); // Cerca il termine nel campo "contenuto"
             builder.add(term);  // Aggiungi il termine al builder
             PhraseQuery phraseQuery = builder.build(); // Costruisci la query
+            //QueryParser parser =  new QueryParser(phraseQuery,new StandardAnalyzer());
             TopDocs hits = searcher.search(phraseQuery, 50);    // Restituisce  i primi 50 risultati
 
             /*ITERA SUI RISULTATI TROVATI*/
@@ -45,7 +48,7 @@ public class Searcher {
                 String id = doc.get("id");  // Prendi il valore del campo id
 
                 /*STAMPA id DELLA TABELLA + NOME DELLA COLONNA*/
-                System.out.println("valore dell'id della tabella: " + id + "Colonna: " + columnName);
+                //System.out.println("valore dell'id della tabella: " + id + "Colonna: " + columnName);
 
                 /*CREAZIONE DELLA LISTA TERMINI->COLONNE*/
                 termToColumnsMap.computeIfAbsent(columnValue, k -> new HashSet<>()); // Se la chiave non è presente, crea il nuovo set
@@ -54,9 +57,11 @@ public class Searcher {
         }
 
         /*STAMPA DELLA MAPPA*/
+        System.out.println("**************************************************************************");
         for (Map.Entry<String, Set<String>> entry : termToColumnsMap.entrySet()) {
-            System.out.println("Value: " + entry.getKey());
-            System.out.println("NomiColonne: " + entry.getValue());
+            System.out.println("Termine: " + entry.getKey());
+            System.out.println("Colonne che contengono il termine: " + entry.getValue());
+            System.out.println("**************************************************************************");
         }
 
         m.mergeList(termToColumnsMap); // Crea la mappa set2count
