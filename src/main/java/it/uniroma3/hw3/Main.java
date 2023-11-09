@@ -14,7 +14,7 @@ public class Main {
         File indexFolder = new File(INDEX_PATH);
         File[] files = indexFolder.listFiles();
         TableIndexer tr = new TableIndexer();
-        Searcher search = new Searcher();
+        TableSearcher search = new TableSearcher();
         Set<String> set = new HashSet<>();
 
 if(files != null && files.length==0) {
@@ -26,7 +26,7 @@ else{
 
         String s = "War crimes";
         String c = "plural";
-        String d = "singular";
+        String d = "Singular";
 
         set.add(s);
         set.add(c);
