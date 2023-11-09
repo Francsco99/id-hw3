@@ -38,7 +38,7 @@ public class Merge {
         List<Map.Entry<String, Object[]>> entryList = new ArrayList<>(set2Count.entrySet());
 
         // Ordina la lista in base al conteggio in ordine decrescente
-        List.sort(entryList, (entry1, entry2) -> {
+        Collections.sort(entryList, (entry1, entry2) -> {
             int conteggio1 = (int) entry1.getValue()[0];
             int conteggio2 = (int) entry2.getValue()[0];
             return Integer.compare(conteggio2, conteggio1);
