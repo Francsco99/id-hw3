@@ -111,7 +111,7 @@ public class TableIndexer {
                             doc.add(new TextField("colonna", columnName, Field.Store.YES));
                             doc.add(new TextField("contenuto", columnValue, Field.Store.YES));
                         } else {
-                            doc.add(new TextField("colonna", " ", Field.Store.YES));
+                            doc.add(new TextField("colonna", "empty_clmn", Field.Store.YES));
                             doc.add(new TextField("contenuto", columnValue, Field.Store.YES));
                         }
                         writer.addDocument(doc);    // Aggiungi il documento
