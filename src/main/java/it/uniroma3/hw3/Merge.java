@@ -57,7 +57,7 @@ public class Merge {
             Object[] tupla = entry.getValue();
             int conteggio = (int) tupla[0];
             String id = (String) tupla[1];
-            System.out.println("Colonna: " + colonna + ", Conteggio: " + conteggio + ", Id: " + id);
+            System.out.println("Colonna: " + colonna + ", Conteggio: " + conteggio);
         }
     }
 }
