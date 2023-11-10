@@ -72,7 +72,7 @@ public class TableSearcher {
             Set<String[]> columnIdTuple = entry.getValue();
             for (String[] tuple : columnIdTuple) {
                 System.out.println("Nome colonna: " + tuple[0]);
-                System.out.println("Id tabella: " + tuple[1]);
+                System.out.println("ID tabella: " + tuple[1]);
             }
             printer.printColored("******************************************************","red");
         }
