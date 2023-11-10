@@ -20,15 +20,13 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class TableIndexer {
-    final static int PRINT_INTERVAL = 100000; // costante per scegliere ogni quanto stampare il messaggio di avanzamento
+    final static int PRINT_INTERVAL = 50000; // costante per scegliere ogni quanto stampare il messaggio di avanzamento
 
     public void tableIndexer(String jsonPath, String indexPath, Codec codec) {
+        PrintColored printer = new PrintColored();
         try {
             /*VARIABILI PER STATISTICHE*/
             int tableCount = 0; // indica la tabella che sto processando
@@ -51,9 +49,9 @@ public class TableIndexer {
            /* if (codec != null) {
                 indexConfig.setCodec(codec);
             }*/
-            FileWriter writerCSV = new FileWriter("C:/Users/franc/Desktop/hw3_dati/tables/celle_casuali.csv"); // NEW
-            ProbabilitaCattura prob = new ProbabilitaCattura(); // NEW
-
+           // FileWriter writerCSV = new FileWriter("C:/Users/franc/Desktop/hw3_dati/tables/celle_casuali.csv"); // NEW
+           // ProbabilitaCattura prob = new ProbabilitaCattura(); // NEW
+            printer.printColored("Inizio indicizzazione tabelle","red");
             while ((line = reader.readLine()) != null) {
                 /*ESTRAZIONE METADATI DELLA TABELLA CORRENTE*/
                 JsonObject jsonTable = JsonParser.parseString(line).getAsJsonObject();  // Analizza la riga corrente come oggetto JSON
@@ -79,7 +77,12 @@ public class TableIndexer {
                     SALVALO NELL'ARRAY DEI NOMI DELLE COLONNE
                      */
                     if (row == 0) {
-                        nomiColonne[col] = (cleanedText);
+                        if(cleanedText==null){
+                            nomiColonne[col]="EMPTY_COLUMN";
+                        }
+                       else {
+                            nomiColonne[col] = (cleanedText);
+                        }
                     }
                     /*ALTRIMENTI SALVA IL CONTENUTO DELLA COLONNA NELLA MAPPA
                     USANDO COME CHIAVE IL NOME DELLA COLONNA
@@ -90,10 +93,6 @@ public class TableIndexer {
                         columnData.computeIfAbsent(columnName, k -> new ArrayList<>()).add(cleanedText);
                     }
                 }
-                /*STAMPA DELLO STATO DI AVANZAMENTO*/
-                if (tableCount % PRINT_INTERVAL == 0) {
-                    System.out.println("Processate  " + tableCount + " tabelle");
-                }
 
                /* //STAMPA DELLA MAPPA DELLA TABELLA CORRENTE
                 for (Map.Entry<String, StringBuilder> entry : columnData.entrySet()) {
@@ -102,7 +101,12 @@ public class TableIndexer {
                     System.out.println("Colonna " + col + ": " + aggregatedText);
                 }*/
 
-
+                if (tableCount % PRINT_INTERVAL == 0 && tableCount!=0) {
+                    long elapsedTime = System.currentTimeMillis();
+                    long partialTime = (elapsedTime-startIndexingTime)/1000;
+                    System.out.println("Processate " + tableCount + " tabelle"+
+                            " in "+ partialTime+" secondi");
+                }
 
                 /*SCORRI LA MAPPA E AGGIUNGI TUTTE LE COLONNE*/
                 for (Map.Entry<String, ArrayList<String>> entry : columnData.entrySet()) {
@@ -113,26 +117,27 @@ public class TableIndexer {
                         Document doc = new Document();  // Creazione di un documento
                         doc.add(new TextField("id", tableId, Field.Store.YES));   // Aggiungi l'id della tabella nel campo id
 
-                        prob.probabilita(writerCSV, columnName); // NEW
+                       // prob.probabilita(writerCSV, columnName); // NEW
 
-                        if (entry.getKey() != null) {
-                            doc.add(new TextField("colonna", columnName, Field.Store.YES));
+                        if(entry.getKey()==null || entry.getKey()==""){
+                            doc.add(new TextField("colonna", "EMPTY_COLUMN", Field.Store.YES));
                             doc.add(new TextField("contenuto", columnValue, Field.Store.YES));
-                        } else {
-                            doc.add(new TextField("colonna", "empty_clmn", Field.Store.YES));
+                        }
+                        else{
+                            doc.add(new TextField("colonna", columnName, Field.Store.YES));
                             doc.add(new TextField("contenuto", columnValue, Field.Store.YES));
                         }
                         writer.addDocument(doc);    // Aggiungi il documento
                     }
                 }
 
-
+                /*STAMPA DELLO STATO DI AVANZAMENTO*/
                 tableCount++; // Incrementa il contatore delle tabelle
             }
             reader.close(); // Chiudi file JSON
             writer.commit(); // Commit del documento
             writer.close(); // Chiudi l'indice
-            writerCSV.close(); // NEW
+           // writerCSV.close(); // NEW
 
             /* TEMPI PROCESSAMENTO E STATISTICHE*/
             long endIndexingTime = System.currentTimeMillis();  // Istante di fine del processamento del file in millisecondi
@@ -142,12 +147,12 @@ public class TableIndexer {
             int tabelleAlSec = (int) ((500271 / (timeProcessing / 1000))); // Tabelle al secondo processate (VALE SOLO PER tables.json)
 
             System.out.println("Finita indicizzazione in " + minutiFine + " minuti e " + secondiFine + " secondi"); // Stampa in minuti e secondi del tempo di processamento
-            System.out.println("Ho processato " + tabelleAlSec + " tabelle al secondo");
+            System.out.println("Processate " + tabelleAlSec + " tabelle al secondo");
+            printer.printColored("Fine indicizzazione tabelle","red");
 
         } catch (IOException e) {
             e.printStackTrace();
         }
-
 
     }
 }
