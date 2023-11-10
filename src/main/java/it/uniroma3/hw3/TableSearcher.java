@@ -64,7 +64,7 @@ public class TableSearcher {
             }
         }
 
-        // Stampa la mappa
+        /*// Stampa la mappa
         System.out.println("\n");
         printer.printColored("Indice invertito:","green");
         for (Map.Entry<String, Set<String[]>> entry : termToColumnsAndIDsMap.entrySet()) {
@@ -75,7 +75,7 @@ public class TableSearcher {
                 System.out.println("ID tabella: " + tuple[1]);
             }
             printer.printColored("******************************************************","red");
-        }
+        }*/
         Merge m = new Merge();
         m.mergeList(termToColumnsAndIDsMap);
     }
