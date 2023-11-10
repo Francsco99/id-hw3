@@ -49,7 +49,7 @@ public class Merge {
             sortedMap.put(entry.getKey(), entry.getValue());
         }
 
-        // stampa della mappa ordinata
+       /* // stampa della mappa ordinata
         System.out.println("\n");
         printer.printColored("Mappa set2count","green");
         for (Map.Entry<String, Object[]> entry : sortedMap.entrySet()) {
@@ -58,6 +58,6 @@ public class Merge {
             int conteggio = (int) tupla[0];
             String id = (String) tupla[1];
             System.out.println("Colonna: " + colonna + ", Conteggio: " + conteggio);
-        }
+        }*/
     }
 }
