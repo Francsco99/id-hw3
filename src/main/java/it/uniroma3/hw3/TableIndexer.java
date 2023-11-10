@@ -5,6 +5,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.apache.lucene.analysis.core.KeywordAnalyzer;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.codecs.Codec;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -16,6 +17,7 @@ import org.apache.lucene.store.FSDirectory;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -26,7 +28,7 @@ import java.util.Map;
 public class TableIndexer {
     final static int PRINT_INTERVAL = 100000; // costante per scegliere ogni quanto stampare il messaggio di avanzamento
 
-    public void tableIndexer(String jsonPath, String indexPath) {
+    public void tableIndexer(String jsonPath, String indexPath, Codec codec) {
         try {
             /*VARIABILI PER STATISTICHE*/
             int tableCount = 0; // indica la tabella che sto processando
@@ -46,6 +48,11 @@ public class TableIndexer {
             /*ITERA SU TUTTE LE RIGHE DEL FILE "tables.json"*/
             Map<String, ArrayList<String>> columnData;
 
+           /* if (codec != null) {
+                indexConfig.setCodec(codec);
+            }*/
+            FileWriter writerCSV = new FileWriter("C:/Users/franc/Desktop/hw3_dati/tables/celle_casuali.csv"); // NEW
+            ProbabilitaCattura prob = new ProbabilitaCattura(); // NEW
 
             while ((line = reader.readLine()) != null) {
                 /*ESTRAZIONE METADATI DELLA TABELLA CORRENTE*/
@@ -105,7 +112,8 @@ public class TableIndexer {
 
                         Document doc = new Document();  // Creazione di un documento
                         doc.add(new TextField("id", tableId, Field.Store.YES));   // Aggiungi l'id della tabella nel campo id
-                        //System.out.println(stringa);
+
+                        prob.probabilita(writerCSV, columnName); // NEW
 
                         if (entry.getKey() != null) {
                             doc.add(new TextField("colonna", columnName, Field.Store.YES));
@@ -124,10 +132,17 @@ public class TableIndexer {
             reader.close(); // Chiudi file JSON
             writer.commit(); // Commit del documento
             writer.close(); // Chiudi l'indice
+            writerCSV.close(); // NEW
 
-            long endIndexingTime = System.currentTimeMillis();  // Istante di fine del processamento del file
+            /* TEMPI PROCESSAMENTO E STATISTICHE*/
+            long endIndexingTime = System.currentTimeMillis();  // Istante di fine del processamento del file in millisecondi
+            long timeProcessing = endIndexingTime - startIndexingTime; // Tempo processamento in millisecondi
+            long minutiFine = (timeProcessing / 1000) / 60; // Tempo processamento in minuti
+            long secondiFine = (timeProcessing / 1000) % 60; // Calcola i secondi
+            int tabelleAlSec = (int) ((500271 / (timeProcessing / 1000))); // Tabelle al secondo processate (VALE SOLO PER tables.json)
 
-            System.out.println("Finita indicizzazione in " + (endIndexingTime - startIndexingTime) / 60000 + " minuti");    // Stampa in minuti del tempo di processamento
+            System.out.println("Finita indicizzazione in " + minutiFine + " minuti e " + secondiFine + " secondi"); // Stampa in minuti e secondi del tempo di processamento
+            System.out.println("Ho processato " + tabelleAlSec + " tabelle al secondo");
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -136,4 +151,3 @@ public class TableIndexer {
 
     }
 }
-
